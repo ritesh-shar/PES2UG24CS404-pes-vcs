@@ -158,5 +158,22 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     // TODO: Implement
     char path[512];
     object_path(id, path, sizeof(path));
+    FILE *f = fopen(path, "rb");
+    if (!f) return -1;
+
+    fseek(f, 0, SEEK_END);
+    size_t file_size = ftell(f);
+    rewind(f);
+    uint8_t *buffer = malloc(file_size);
+    if (fread(buffer, 1, file_size, f) != file_size) {
+        fclose(f); free(buffer); return -1;
+    }
+    fclose(f);
+    ObjectID actual_id;
+    compute_hash(buffer, file_size, &actual_id);
+    if (memcmp(id->hash, actual_id.hash, HASH_SIZE) != 0) {
+        fprintf(stderr, "Integrity check failed for object!\n");
+        free(buffer); return -1;
+    }
     return -1;
 }
