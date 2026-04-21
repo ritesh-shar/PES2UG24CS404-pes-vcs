@@ -201,6 +201,11 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
         fprintf(stderr, "error: failed to load index\n");
         return -1;
     }
+    if (index.count == 0) {
+        fprintf(stderr, "error: nothing staged to commit (index is empty)\n");
+        return -1;
+    }
+
     ObjectID tree_id;
     if (tree_from_index(&tree_id) != 0) {
         fprintf(stderr, "error: failed to create tree from index\n");
