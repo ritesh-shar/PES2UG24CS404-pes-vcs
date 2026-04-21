@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include "pes.h"
 #include "index.h"
-#include <object.c>
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -133,49 +132,58 @@ int tree_serialize(const Tree *tree, void **data_out, size_t *len_out) {
 //
 // Returns 0 on success, -1 on error.
 
-static int build_tree_recursive(IndexEntry *entries, int count, int start, int *consumed, ObjectID *id_out) {
+static int build_tree_recursive(IndexEntry *entries, int count, int start, int offset, ObjectID *id_out) {
     Tree tree;
     tree.count = 0;
     int i = start;
+
     while (i < start + count) {
-        char *path = entries[i].path;
-        char *slash = strchr(path, '/');
+        char *current_path = entries[i].path + offset;
+        char *slash = strchr(current_path, '/');
 
         if (slash) {
-            // CASE 1: This entry is in a SUBDIRECTORY
             TreeEntry *te = &tree.entries[tree.count++];
             te->mode = MODE_DIR;
-            size_t dir_name_len = slash - path;
-            strncpy(te->name, path, dir_name_len);
+            
+            size_t dir_name_len = slash - current_path;
+            if (dir_name_len >= sizeof(te->name)) dir_name_len = sizeof(te->name) - 1;
+            
+            strncpy(te->name, current_path, dir_name_len);
             te->name[dir_name_len] = '\0';
+
             int sub_count = 0;
             while (i + sub_count < start + count && 
-                   strncmp(entries[i + sub_count].path, te->name, dir_name_len) == 0 &&
-                   entries[i + sub_count].path[dir_name_len] == '/') {
-                    sub_count++;
-                   }
+                   strncmp(entries[i + sub_count].path + offset, te->name, dir_name_len) == 0 &&
+                   (entries[i + sub_count].path + offset)[dir_name_len] == '/') {
+                sub_count++;
+            }
+
+            if (build_tree_recursive(entries, sub_count, i, offset + dir_name_len + 1, &te->hash) != 0) 
+                return -1;
+            
             i += sub_count;
-    }
-    else{
-        // CASE 2: This entry is a FILE in the current directory
+        } else {
             TreeEntry *te = &tree.entries[tree.count++];
             te->mode = entries[i].mode;
-            strncpy(te->name, path, sizeof(te->name));
+            
+            // Safe copy to avoid the truncation warning
+            strncpy(te->name, current_path, sizeof(te->name) - 1);
+            te->name[sizeof(te->name) - 1] = '\0';
+            
             memcpy(te->hash.hash, entries[i].hash.hash, HASH_SIZE);
             i++;
+        }
     }
-}
 
     void *data;
     size_t len;
     if (tree_serialize(&tree, &data, &len) != 0) return -1;
-    if (object_write(OBJ_TREE, data, len, id_out) != 0) {
+    if (object_write(OBJ_TREE, data, len, id_out) != 0) { // Should now be recognized
         free(data);
         return -1;
     }
 
     free(data);
-    if (consumed) *consumed = i - start;
     return 0;
 }
 
