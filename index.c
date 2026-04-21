@@ -20,7 +20,7 @@
 #include "index.h"
 #include <time.h>
 #include <stdio.h>
-#include "object.c"
+#include "pes.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
