@@ -196,7 +196,7 @@ int tree_from_index(ObjectID *id_out) {
     IndexEntry *entries_copy = malloc(sizeof(IndexEntry) * index.count);
     memcpy(entries_copy, index.entries, sizeof(IndexEntry) * index.count);
 
-    int result = build_tree_recursive(entries_copy, index.count, 0, NULL, id_out);
+    int result = build_tree_recursive(entries_copy, index.count, 0, 0, id_out);
     
     free(entries_copy);
     return result;

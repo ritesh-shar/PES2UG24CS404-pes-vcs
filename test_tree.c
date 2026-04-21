@@ -39,8 +39,8 @@ void test_tree_roundtrip(void) {
 
     ObjectID tree_id;
     if (object_write(OBJ_TREE, data, len, &tree_id) == 0) {
-        char hex[65];
-        object_id_to_str(&tree_id, hex);
+        char hex[HASH_HEX_SIZE + 1];
+        hash_to_hex(&tree_id, hex);
         printf("DEBUG: Tree object written to .pes/objects/%c%c/%s\n", 
                 hex[0], hex[1], hex + 2);
     } else {
