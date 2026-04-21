@@ -98,11 +98,10 @@ void test_tree_determinism(void) {
 }
 
 int index_load(void *index) {
-    (void)index;
     return 0;
 }
 
-int index_load(void *i) { return 0; }
+
 
 int main(void) {
     int rc __attribute__((unused));
