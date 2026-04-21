@@ -136,6 +136,35 @@ static int build_tree_recursive(IndexEntry *entries, int count, int start, int *
     Tree tree;
     tree.count = 0;
     int i = start;
+    while (i < start + count) {
+        char *path = entries[i].path;
+        char *slash = strchr(path, '/');
+
+        if (slash) {
+            // CASE 1: This entry is in a SUBDIRECTORY
+            TreeEntry *te = &tree.entries[tree.count++];
+            te->mode = MODE_DIR;
+            size_t dir_name_len = slash - path;
+            strncpy(te->name, path, dir_name_len);
+            te->name[dir_name_len] = '\0';
+            int sub_count = 0;
+            while (i + sub_count < start + count && 
+                   strncmp(entries[i + sub_count].path, te->name, dir_name_len) == 0 &&
+                   entries[i + sub_count].path[dir_name_len] == '/') {
+                    sub_count++;
+                   }
+            i += sub_count;
+    }
+    else{
+        // CASE 2: This entry is a FILE in the current directory
+            TreeEntry *te = &tree.entries[tree.count++];
+            te->mode = entries[i].mode;
+            strncpy(te->name, path, sizeof(te->name));
+            memcpy(te->hash.hash, entries[i].hash.hash, HASH_SIZE);
+            i++;
+    }
+}
+
     void *data;
     size_t len;
     if (tree_serialize(&tree, &data, &len) != 0) return -1;
