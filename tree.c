@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "pes.h"
 #include "index.h"
+#include <object.c>
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
