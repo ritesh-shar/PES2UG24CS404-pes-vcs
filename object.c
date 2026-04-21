@@ -175,5 +175,25 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
         fprintf(stderr, "Integrity check failed for object!\n");
         free(buffer); return -1;
     }
-    return -1;
+    char *header_ptr = (char *)buffer;
+    char *null_byte = memchr(buffer, '\0', file_size);
+    if (!null_byte) { free(buffer); return -1; }
+
+    char type_str[16];
+    size_t size_val;
+    sscanf(header_ptr, "%s %zu", type_str, &size_val);
+
+    if (strcmp(type_str, "blob") == 0) *type_out = OBJ_BLOB;
+    else if (strcmp(type_str, "tree") == 0) *type_out = OBJ_TREE;
+    else *type_out = OBJ_COMMIT;
+
+    size_t header_len = (null_byte - header_ptr) + 1;
+    size_t data_len = file_size - header_len;
+    
+    *data_out = malloc(data_len);
+    memcpy(*data_out, buffer + header_len, data_len);
+    *len_out = data_len;
+
+    free(buffer);
+    return 0;
 }
