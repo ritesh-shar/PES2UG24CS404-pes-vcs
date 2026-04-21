@@ -206,5 +206,16 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
     int is_empty = 1;
     for(int i = 0; i < (int)sizeof(ObjectID); i++) if(((unsigned char*)&tree_id)[i] != 0) is_empty = 0;
     if (is_empty) return -1;
+
+    Commit commit;
+    memset(&commit, 0, sizeof(Commit));
+    commit.tree = tree_id;
+
+    if (head_read(&commit.parent) == 0) {
+        commit.has_parent = 1;
+    } else {
+        commit.has_parent = 0;
+    }
+    
     return -1;
 }
