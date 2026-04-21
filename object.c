@@ -105,7 +105,31 @@ int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out
     if (!full_obj) return -1;
     memcpy(full_obj, header, header_len);
     memcpy(full_obj + header_len, data, len);
-    return -1;
+    compute_hash(full_obj, total_size, id_out);
+    if (object_exists(id_out)) {
+        free(full_obj);
+        return 0; 
+    }
+    char final_path[512], shard_dir[512], temp_path[512];
+    object_path(id_out, final_path, sizeof(final_path));
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(id_out, hex);
+    snprintf(shard_dir, sizeof(shard_dir), "%s/%.2s", OBJECTS_DIR, hex);
+    mkdir(shard_dir, 0755);
+    snprintf(temp_path, sizeof(temp_path), "%s/tmp_XXXXXX", shard_dir);
+    int fd = mkstemp(temp_path); // Safer than a fixed temp name
+    if (fd < 0) { free(full_obj); return -1; }
+    write(fd, full_obj, total_size);
+    fsync(fd); 
+    close(fd);
+    if (rename(temp_path, final_path) != 0) {
+        unlink(temp_path);
+        free(full_obj);
+        return -1;
+    }
+
+    free(full_obj);
+    return 0;
 }
 
 // Read an object from the store.
