@@ -97,6 +97,11 @@ void test_tree_determinism(void) {
     printf("PASS: tree deterministic serialization\n");
 }
 
+int index_load(void *index) {
+    (void)index;
+    return 0;
+}
+
 int main(void) {
     int rc __attribute__((unused));
     rc = system("rm -rf .pes");
