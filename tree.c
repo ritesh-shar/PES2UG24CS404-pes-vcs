@@ -12,6 +12,8 @@
 #include "tree.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "pes.h"
+#include "index.h"
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -132,6 +134,15 @@ int tree_serialize(const Tree *tree, void **data_out, size_t *len_out) {
 int tree_from_index(ObjectID *id_out) {
     // TODO: Implement recursive tree building
     // (See Lab Appendix for logical steps)
-    (void)id_out;
+    Index index;
+    if (index_load(&index) != 0) return -1;
+    if (index.count == 0) return -1;
+    IndexEntry *entries_copy = malloc(sizeof(IndexEntry) * index.count);
+    memcpy(entries_copy, index.entries, sizeof(IndexEntry) * index.count);
+
+    int result = build_tree_recursive(entries_copy, index.count, 0, NULL, id_out);
+    
+    free(entries_copy);
+    return result;
     return -1;
 }
