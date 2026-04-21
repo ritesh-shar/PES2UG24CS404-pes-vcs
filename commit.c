@@ -202,7 +202,6 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
         return -1;
     }
     ObjectID tree_id;
-     tree_from_index(&index);
     if (tree_from_index(&tree_id) != 0) {
         fprintf(stderr, "error: failed to create tree from index\n");
         return -1;
