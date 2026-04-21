@@ -102,6 +102,8 @@ int index_load(void *index) {
     return 0;
 }
 
+int index_load(void *i) { return 0; }
+
 int main(void) {
     int rc __attribute__((unused));
     rc = system("rm -rf .pes");
