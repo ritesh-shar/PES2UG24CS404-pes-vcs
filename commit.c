@@ -196,6 +196,15 @@ int head_update(const ObjectID *new_commit) {
 int commit_create(const char *message, ObjectID *commit_id_out) {
     // TODO: Implement commit creation
     // (See Lab Appendix for logical steps)
-    (void)message; (void)commit_id_out;
+    Index index;
+    if (index_load(&index) != 0) {
+        fprintf(stderr, "error: failed to load index\n");
+        return -1;
+    }
+    ObjectID tree_id = tree_from_index(&index);
+    // tree_from_index returns a zeroed ObjectID on failure
+    int is_empty = 1;
+    for(int i = 0; i < (int)sizeof(ObjectID); i++) if(((unsigned char*)&tree_id)[i] != 0) is_empty = 0;
+    if (is_empty) return -1;
     return -1;
 }
