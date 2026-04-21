@@ -215,6 +215,7 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
         commit.has_parent = 1;
     } else {
         commit.has_parent = 0;
+        memset(&commit.parent, 0, sizeof(ObjectID));
     }
     snprintf(commit.author, sizeof(commit.author), "%s", pes_author());
     commit.timestamp = (uint64_t)time(NULL);
